@@ -1,0 +1,26 @@
+iso_file = '/srv/www/htdocs/harvester/harvester.iso'
+
+Vagrant.configure("2") do |config|
+  config.vm.define "vm" do |node|
+    node.vm.hostname = "vm"
+    node.vm.provider "libvirt" do |lv|
+      lv.boot 'hd' 
+      lv.cpu_mode = 'host-passthrough'
+      lv.memory = 2048
+      lv.cpus = 2
+      lv.nic_model_type = 'e1000'
+      lv.loader = "/usr/share/qemu/ovmf-x86_64.bin"
+
+      lv.storage :file, :size => '300G', :device => 'vda'
+
+      lv.qemuargs :value => '-drive'
+      lv.qemuargs :value => "if=none,id=usbstick,format=raw,file=#{iso_file}"
+      lv.qemuargs :value => '-device'
+      lv.qemuargs :value => 'nec-usb-xhci,id=xhci,addr=09'
+      lv.qemuargs :value => '-device'
+      lv.qemuargs :value => 'usb-storage,bus=xhci.0,drive=usbstick'
+      lv.graphics_ip = '0.0.0.0'
+      lv.graphics_port = 5955
+    end
+  end
+end
